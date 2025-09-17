@@ -1,11 +1,6 @@
+//====== App.js ===============
 import React, { useEffect, useState } from 'react';
 import "./index.css";
-import MerchantsRegistrationForm from './components/merchantsRegistrationForm';
-import VerificationsDashboard from './components/verificationsDashboard';
-import AgentRegistrationForm from './components/agentsRegistrationForm';
-import MerchantRegistrationTriggerButton from "./components/merchantRegistrationTriggerButton"
-import AgentList from "./components/agentsList";
-import MerchantList from "./components/merchantsList";
 import Header from './components/header';
 import Footer from './components/footer';
 import CompanyLogo from './images/flowswitch-icon.png';
@@ -15,66 +10,30 @@ import { NoteSnapProvider } from './noteSnapProvider';
 import { AgentRegistrationProvider } from './agentRegistrationProvider';
 import { AgentVerificationSchedulingProvider } from './agentVerificationScheduleProvider';
 import { MerchantRegistrationProvider } from './merchantRegistrationProvider';
+import AgentDashboard from './components/agentDashboard';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [cards, setCards] = useState({
-    verificationsDashboard: {
-      key: "verificationsDashboard",
-      visible: false,
-      component: VerificationsDashboard
-    },
-    merchantRegistrationForm: {
-      key: "merchantRegistrationForm",
-      visible: false,
-      component: MerchantsRegistrationForm
-    },
-    merchantListTable: {
-      key: "merchantListTable",
-      visible: false,
-      component: MerchantList
-    },
-    agentRegistrationForm: {
-      key: "agentRegistrationForm",
-      visible: false,
-      component: AgentRegistrationForm
-    },
-    agentListTable: {
-      key: "agentListTable",
-      visible: (user?.agentGuid? false : true),
-      component: AgentList
-    },
-  });
+  const [floatBalance, setFloatBalance] = useState(0); // Mock balance for UI
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showBuyVoucherModal, setShowBuyVoucherModal] = useState(false);
+  const [showRedeemVoucherModal, setShowRedeemVoucherModal] = useState(false);
+  const [selectedMerchant, setSelectedMerchant] = useState('');
+  const [voucherValue, setVoucherValue] = useState('');
+  const [voucherId, setVoucherId] = useState('');
+  const [redeemAmount, setRedeemAmount] = useState('');
+  const [salesAgentId, setSalesAgentId] = useState('');
 
-  const showCard = (cardKey) => {
-    if (cards[cardKey]) {
-      setCards((prev) => ({
-        ...prev,
-        [cardKey]: {
-          ...prev[cardKey],
-          visible: true
-        }
-      }));
-    }
+  // Mock merchants and voucher options for UI demonstration
+  const merchants = ['Merchant A', 'Merchant B', 'Merchant C'];
+  const voucherOptions = [100, 500, 1000, 5000]; // Predefined values
+
+  // Mock trust limit
+  const getTrustLimit = (merchant) => {
+    // In real, fetch based on merchant and user trust score
+    return merchant ? 2000 : 0; // Example max
   };
-
-  const hideCard = (cardKey) => {
-    if (cards[cardKey]) {
-      setCards((prev) => ({
-        ...prev,
-        [cardKey]: {
-          ...prev[cardKey],
-          visible: false
-        }
-      }));
-    }
-  };
-
-  let visibleCards = {};
-  Object.values(cards).forEach(card => {
-    visibleCards[card.key] = card.visible;
-  });
 
   const [submitLoginForm, {
     data: loginSuccessResponse,
@@ -91,8 +50,16 @@ const App = () => {
     if (loginSucceeded && userDetails) {
       setIsLoggedIn(true);
       setUser(userDetails);
+      // Mock fetching float balance
+      setFloatBalance(1500); // Example
     }
   }, [loginSucceeded, loginSuccessResponse]);
+
+  useEffect(() => {
+    if (user && !user?.agentGuid) {
+      window.location.href = 'https://www.flowswitchapi.com';
+    }
+  }, [user]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -148,29 +115,22 @@ const App = () => {
               </div>
             )}
 
-            <Header showCard={showCard} hideCard={hideCard} visibleCards={visibleCards} />
-            {user?.agentGuid ?
-              <div className="flex bg-lime-100 w-full flex-grow">
-                {/* do nothing, agent should not see anything but just wait for their prompt(s) */}
-              </div>
-              :user ?
+            <Header />
+            {user?.agentGuid ? (
+              <AgentDashboard />
+            ) : user ? (
               <div className="flex bg-lime-100 min-h-200 w-full flex-grow flex-col xl:flex-row">
-                <VerificationsDashboard className={"w-full xl:w-[60%]"} />
-                <div className="w-full xl:w-[40%] bg-white py-2 px-1">
-                  <div className="w-full">
-                      {Object.values(cards).filter(card => card.visible).map(card => {
-                        const CardComponent = card.component;
-                        return (<CardComponent key={card.key} />);
-                      })}
-                  </div>
+                {/* Redirecting non-agents */}
+                <div className="flex-grow flex justify-center items-center">
+                  <p className="text-xl">Redirecting to FlowSwitch homepage...</p>
                 </div>
               </div>
-              :
+            ) : (
               <div className="bg-lime-100 min-h-200 w-full">
                 <h2 className="text-xl font-semibold mb-4 text-center p-10"> Login pending ... </h2>
                 <img src={CompanyLogo} alt="Company Logo" className="mx-auto mb-4 h-16" />
               </div>
-            }
+            )}
             <Footer />
           </div>
           </AgentVerificationSchedulingProvider>

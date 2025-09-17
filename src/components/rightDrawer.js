@@ -21,7 +21,7 @@ const RightDrawer = ({ showCard, hideCard, visibleCards, menuOpen, setMenuOpen }
           // { key: 'verificationsDashboard', label: 'Verifications' },
           // { key: 'merchantRegistrationForm', label: 'Merchant Registration' },
           // { key: 'merchantListTable', label: 'Merchants List' },
-          { key: 'agentListTable', label: 'Agents List' },
+          // { key: 'agentListTable', label: 'Agents List' },
           // { key: 'agentRegistrationForm', label: 'Agent Registration' },
         ].map(({ key, label }) => (
           <div key={key} className="flex items-center space-x-2 cursor-pointer group">
