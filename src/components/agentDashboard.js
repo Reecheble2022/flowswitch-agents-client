@@ -111,7 +111,7 @@ const AgentDashboard = ({ className }) => {
             <FaWallet className="text-lime-600 text-2xl sm:text-3xl mr-3 sm:mr-4" />
             <div>
               <p className="text-gray-600 text-sm sm:text-base">Float Balance</p>
-              <p className="text-lg sm:text-2xl font-semibold text-lime-600">${floatBalance.toFixed(2)}</p>
+              <p className="text-lg sm:text-2xl font-semibold text-lime-600">R{floatBalance.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -207,7 +207,7 @@ const AgentDashboard = ({ className }) => {
                   {merchants.map(m => <option key={m}>{m}</option>)}
                 </select>
                 {selectedMerchant && (
-                  <p className="text-gray-600 text-sm sm:text-base">Max Trust Limit: ${getTrustLimit(selectedMerchant)}</p>
+                  <p className="text-gray-600 text-sm sm:text-base">Max Trust Limit: R{getTrustLimit(selectedMerchant)}</p>
                 )}
                 <select 
                   value={voucherValue}
