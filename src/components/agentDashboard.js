@@ -67,12 +67,12 @@ const AgentDashboard = ({ className }) => {
 
   // Mock merchants and voucher options for UI demonstration
   const merchants = ['Merchant A', 'Merchant B', 'Merchant C'];
-  const voucherOptions = [100, 500, 1000, 5000]; // Predefined values
+  const voucherOptions = [2000, 10000, 20000, 100000]; // Predefined values
 
   // Mock trust limit
   const getTrustLimit = (merchant) => {
     // In real, fetch based on merchant and user trust score
-    return merchant ? 2000 : 0; // Example max
+    return merchant ? 40000 : 0; // Example max
   };
   
   const [fetchAgents, { data: agentsData, isLoading: agentsLoading }] = useItemsListReadrMutation();
@@ -216,7 +216,7 @@ const AgentDashboard = ({ className }) => {
                   required
                 >
                   <option value="">Select Voucher Value</option>
-                  {voucherOptions.map(v => <option key={v} value={v}>${v}</option>)}
+                  {voucherOptions.map(v => <option key={v} value={v}>R{v}</option>)}
                 </select>
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
                   <button type="submit" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">

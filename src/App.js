@@ -15,25 +15,6 @@ import AgentDashboard from './components/agentDashboard';
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [floatBalance, setFloatBalance] = useState(0); // Mock balance for UI
-  const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [showBuyVoucherModal, setShowBuyVoucherModal] = useState(false);
-  const [showRedeemVoucherModal, setShowRedeemVoucherModal] = useState(false);
-  const [selectedMerchant, setSelectedMerchant] = useState('');
-  const [voucherValue, setVoucherValue] = useState('');
-  const [voucherId, setVoucherId] = useState('');
-  const [redeemAmount, setRedeemAmount] = useState('');
-  const [salesAgentId, setSalesAgentId] = useState('');
-
-  // Mock merchants and voucher options for UI demonstration
-  const merchants = ['Merchant A', 'Merchant B', 'Merchant C'];
-  const voucherOptions = [100, 500, 1000, 5000]; // Predefined values
-
-  // Mock trust limit
-  const getTrustLimit = (merchant) => {
-    // In real, fetch based on merchant and user trust score
-    return merchant ? 2000 : 0; // Example max
-  };
 
   const [submitLoginForm, {
     data: loginSuccessResponse,
@@ -44,14 +25,12 @@ const App = () => {
   }] = useUserLoginMutation();
 
   const {user: userDetails} = loginSuccessResponse || {}
-  console.log("userDetails =", userDetails)
+  // console.log("userDetails =", userDetails)
 
   useEffect(() => {
     if (loginSucceeded && userDetails) {
       setIsLoggedIn(true);
       setUser(userDetails);
-      // Mock fetching float balance
-      setFloatBalance(1500); // Example
     }
   }, [loginSucceeded, loginSuccessResponse]);
 
