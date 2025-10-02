@@ -9,8 +9,8 @@ import { UserLocationProvider } from './userLocationProvider';
 import { NoteSnapProvider } from './noteSnapProvider';
 import { AgentRegistrationProvider } from './agentRegistrationProvider';
 import { AgentVerificationSchedulingProvider } from './agentVerificationScheduleProvider';
-import { MerchantRegistrationProvider } from './merchantRegistrationProvider';
 import AgentDashboard from './components/agentDashboard';
+import AgentRegistrationTriggerButton from './components/agentRegistrationTriggerButton';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -51,7 +51,6 @@ const App = () => {
   return (
     <UserLocationProvider user={user}>
     <NoteSnapProvider user={user}>
-      <MerchantRegistrationProvider>
       <AgentRegistrationProvider user={user}>
         <AgentVerificationSchedulingProvider>
           <div className="flex flex-col min-h-screen bg-gray-100 relative">
@@ -90,6 +89,7 @@ const App = () => {
                       {loginProcessing ? 'Please wait...' : 'Login'}
                     </button>
                   </form>
+                  <AgentRegistrationTriggerButton />
                 </div>
               </div>
             )}
@@ -114,7 +114,6 @@ const App = () => {
           </div>
           </AgentVerificationSchedulingProvider>
         </AgentRegistrationProvider>
-        </MerchantRegistrationProvider>
       </NoteSnapProvider>
     </UserLocationProvider>
   );

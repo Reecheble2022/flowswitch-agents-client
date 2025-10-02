@@ -6,7 +6,7 @@ import { selectList } from '../backend/features/sharedMainState';
 import ProfileImageInput from './profilePhotoInput';
 import DocumentsInput from './documentsInput';
 
-const AgentsRegistrationForm = ({ formLabel }) => {
+const AgentRegistrationForm = ({ formLabel }) => {
     const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(false);
     const [preview, setPreview] = useState(null);
@@ -16,7 +16,6 @@ const AgentsRegistrationForm = ({ formLabel }) => {
     const [photoUploadGuid, setPhotoUploadGuid] = useState(undefined);
     const [merchantsAppliedFor, setMerchantsAppliedFor] = useState([]);
     const [category, setCategory] = useState("");
-    const [allMerchants, setAllMerchants] = useState([{ guid: "ea324241315ac", merchantName: "Reech" }, { guid: "ea324774322", merchantName: "Aever" }]);
     // New state variables for form inputs
     const [formData, setFormData] = useState({
         firstName: '',
@@ -191,14 +190,12 @@ const AgentsRegistrationForm = ({ formLabel }) => {
             photo: photoUploadGuid,
             documents: uploadedDocuments,
         }
-        submitNewAgent({ entity: "agent", data: payload })
+        submitNewAgent({ endpoint: "agent", submissionEndpoint: "agent/signup", data: payload })
     }
     //============= /end submit to Cloud Run =================
 
     return (
-        <div className={`w-full ${formLabel?"xl:w-[70%]":"xl:max-w-full"} p-6 bg-white rounded-lg shadow-lg`}>
-            <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800"> {formLabel || "Register new Agent"} </h2>
-            
+        <div className={`w-full p-6 bg-white rounded-lg shadow-lg`}>
             <div className="flex flex-col lg:flex-row gap-8 w-full">
                 <div className={`flex-item w-full ${formLabel?"lg:w-[50%]":""} space-y-4`}>
                     <div>
@@ -352,4 +349,4 @@ const AgentsRegistrationForm = ({ formLabel }) => {
     );
 };
 
-export default AgentsRegistrationForm;
+export default AgentRegistrationForm;

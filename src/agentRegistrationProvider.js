@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import AgentsRegistrationForm from './components/agentsRegistrationForm';
+import AgentRegistrationForm from './components/agentRegistrationForm';
 import AgentsRegistrationUpload from './components/agentsRegistrationUpload';
 import CompanyLogo from './images/flowswitch-icon.png';
 
@@ -35,9 +35,8 @@ export const AgentRegistrationProvider = ({ children }) => {
               <p className="text-gray-600 mb-4 text-center">
                 Complete the form to create a single agent or upload multiple agents in an Excel file
               </p>
-              <div className="flex flex-col lg:flex-row gap-4">
-                <AgentsRegistrationForm formLabel={"Single agent details"} />
-                <AgentsRegistrationUpload />
+              <div className="flex">
+                <AgentRegistrationForm />
               </div>
               
               <div className="flex justify-between mt-4">
@@ -51,7 +50,7 @@ export const AgentRegistrationProvider = ({ children }) => {
                   onClick={handleCloseRegistration}
                   className="bg-gray-600 text-black px-4 py-2 rounded hover:bg-gray-700 border bg-white"
                 >
-                  Done
+                  Go to Login
                 </button>
               </div>
             </div>
