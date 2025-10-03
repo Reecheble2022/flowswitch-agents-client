@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useItemsListReadrMutation } from '../backend/api/sharedCrud';
+import { useItemsListReadrMutation, useItemFieldsUpdaterMutation } from '../backend/api/sharedCrud';
 import { useNoteSnap } from '../noteSnapProvider';
 import { useUserLocation } from "../userLocationProvider";
 import { useAgentRegistration } from "../agentRegistrationProvider";
@@ -13,7 +13,7 @@ const AgentDashboard = ({ className }) => {
   const { scheduleAgentVerificationForOneAgent, scheduleAgentVerificationForAllAgents } = useAgentVerificationScheduling();
   const [activeTab, setActiveTab] = useState('location');
   const [selectedAgentToPrompt, setSelectedAgentToPrompt] = useState({});
-  const [floatBalance, setFloatBalance] = useState(0); // Mock balance for UI
+  const [floatBalance, setFloatBalance] = useState(0);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showBuyVoucherModal, setShowBuyVoucherModal] = useState(false);
   const [showRedeemVoucherModal, setShowRedeemVoucherModal] = useState(false);
@@ -23,13 +23,21 @@ const AgentDashboard = ({ className }) => {
   const [redeemAmount, setRedeemAmount] = useState('');
   const [salesAgentId, setSalesAgentId] = useState('');
 
+  const [submitWalletTopUp, { data: updatedWalletData, isLoading: walletTopUpProcessing }] = useItemFieldsUpdaterMutation();
+  const { Data: newWalletDetails } = updatedWalletData || {};
+
   const handleTopUp = (e) => {
     e.preventDefault();
-    // TODO: Integrate backend for top-up
-    console.log('Top-up submitted');
     setShowTopUpModal(false);
-    // Mock update balance
     setFloatBalance(prev => prev + parseFloat(e.target.amount.value));
+    submitWalletTopUp({
+      entity: "floatwallet",
+      guid: "pivot",
+      data: {
+        fiatCurrency: "ZAR", 
+        fiatAmount: parseFloat(e.target.amount.value)
+      },
+    })
   };
 
   const handleBuyVoucher = (e) => {

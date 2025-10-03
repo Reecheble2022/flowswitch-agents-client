@@ -148,9 +148,6 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
       },
       transformResponse: (response, _, { entity }) => {
         const { data, msg } = response || {}
-        console.log("<<ff>>>-fileUploader-data =", data)
-        console.log("<<ff>>>-msg =", msg)
-        console.log("<<ff>>>-entity =", entity)
         return { entity, Data: data, Message: msg }
       }
     }),
@@ -193,8 +190,6 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
           const params = searchParams.toString();
           targetURL = `/${entity}?page=${page}&limit=${max}&${params}`
         }
-        console.log("____________________________________")
-        console.log("<<>>>-targetURL =", targetURL)
         return ({
           url: targetURL,
           method: "GET",
@@ -242,12 +237,15 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
 
     //______________________________________________
     itemFieldsUpdater: builder.mutation({
-      query: ({ entity, submissionEndpoint, data, guid }) => {
-        const url = `/${submissionEndpoint || entity}/${guid}`
-        // console.log("oooooooooo-url = ", url)
-        // console.log("oooooooooo-data = ", data)
+      query: ({ entity, submissionEndpoint, data, guid, filters }) => {
+        let targetURL = `/${submissionEndpoint || entity}/${guid}`
+        if (filters && Object.keys(filters).length > 0) {
+          const searchParams = new URLSearchParams(filters);
+          const params = searchParams.toString();
+          targetURL = `/${submissionEndpoint || entity}/${guid}?${params}`
+        }
         return ({
-          url,
+          url: targetURL,
           method: "PUT",
           body: data,
         })
@@ -260,10 +258,15 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
 
     //______________________________________________
     itemFieldPatcher: builder.mutation({
-      query: ({ entity, submissionEndpoint, data, guid }) => {
-        const url = `/${submissionEndpoint || entity}/${guid}`
+      query: ({ entity, submissionEndpoint, data, guid, filters }) => {
+        let targetURL = `/${submissionEndpoint || entity}/${guid}`
+        if (filters && Object.keys(filters).length > 0) {
+          const searchParams = new URLSearchParams(filters);
+          const params = searchParams.toString();
+          targetURL = `/${submissionEndpoint || entity}/${guid}?${params}`
+        }
         return ({
-          url,
+          url: targetURL,
           method: "PATCH",
           body: data,
         })
