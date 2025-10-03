@@ -287,7 +287,7 @@ export const NoteSnapProvider = ({ children, user }) => {
                       </button>
                       <button
                         onClick={toggleCamera}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        className="bg-blue-100 text-green px-4 py-2 rounded hover:bg-blue-200"
                       >
                         🔄 Switch Camera
                       </button>
