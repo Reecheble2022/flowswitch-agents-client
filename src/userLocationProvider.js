@@ -61,15 +61,15 @@ export const UserLocationProvider = ({ children, user }) => {
 
   const isDateTodayOrEarlier = (dateString) => {
     const inputDate = new Date(dateString);
-    console.log(">>inputDate =", inputDate)
+    console.log(">>inputDate =", inputDate);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    console.log(">>today =", today)
-    console.log(">>!isNaN(inputDate) =", !isNaN(inputDate))
-    console.log(">>inputDate <= today =", inputDate <= today)
-    console.log(">>inputDate instanceof Date =", inputDate instanceof Date)
+    today.setHours(23, 59, 59, 999);
+    console.log(">>today =", today);
+    console.log(">>!isNaN(inputDate) =", !isNaN(inputDate));
+    console.log(">>inputDate <= today =", inputDate <= today);
+    console.log(">>inputDate instanceof Date =", inputDate instanceof Date);
     return inputDate instanceof Date && !isNaN(inputDate) && inputDate <= today;
-  };
+};
   const openScheduledPrompt = (verificationSchedule) => {
     if(verificationSchedule?.dueDate){
       setActiveVerificationSchedule(verificationSchedule);
