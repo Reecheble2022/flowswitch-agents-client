@@ -83,7 +83,7 @@ export const UserLocationProvider = ({ children, user }) => {
   console.log("ooooooo-verficationSchedulesCount =", verficationSchedulesCount)
   console.log("ooooooo-user?.agentGuid?.verificationSchedules =", user?.agentGuid?.verificationSchedules)
   console.log("ooooooo-verficationSchedulesCount =", verficationSchedulesCount)
-  console.log("ooooooo-isDateTodayOrEarlier(2025-10-04 00:00:00.000) =", isDateTodayOrEarlier("2025-10-04 00:00:00.000"))
+  console.log("ooooooo-isDateTodayOrEarlier(2025-10-04) =", isDateTodayOrEarlier("2025-10-04"))
   useEffect(() => {
     if(verficationSchedulesCount && (previousVerficationSchedulesCount !== verficationSchedulesCount)){
       if ((user?.agentGuid?._id || user?.agentGuid?.guid) && (previousAgentGuid !== (user?.agentGuid?._id || user?.agentGuid?.guid))) {
