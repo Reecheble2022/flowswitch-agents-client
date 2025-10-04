@@ -80,6 +80,9 @@ export const UserLocationProvider = ({ children, user }) => {
   const verficationSchedulesCount = verficationSchedulesDue.length;
   const [previousVerficationSchedulesCount, setPreviousVerficationSchedulesCount] = useState(-1)
   const [previousAgentGuid, setPreviousAgentGuid] = useState("xxxx")
+  console.log("ooooooo-verficationSchedulesCount =", verficationSchedulesCount)
+  console.log("ooooooo-user?.agentGuid?.verificationSchedules =", user?.agentGuid?.verificationSchedules)
+  console.log("ooooooo-user?.agentGuid =", user?.agentGuid)
   useEffect(() => {
     if(verficationSchedulesCount && (previousVerficationSchedulesCount !== verficationSchedulesCount)){
       if ((user?.agentGuid?._id || user?.agentGuid?.guid) && (previousAgentGuid !== (user?.agentGuid?._id || user?.agentGuid?.guid))) {
