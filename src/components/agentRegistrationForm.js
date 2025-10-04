@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+categoryimport React, { useState, useRef, useEffect } from 'react';
 import { FloatingLabelInput } from "./floatingLabelInput"
 import { useFileUploaderMutation, useItemRegistrerMutation, useItemsListReaderQuery } from "../backend/api/sharedCrud"
 import { useSelector } from 'react-redux';
@@ -183,6 +183,7 @@ const AgentRegistrationForm = ({ formLabel }) => {
             phone: formData.phone,
             email: formData.email,
             physicalAddress: formData.physicalAddress,
+            address: formData.physicalAddress,
             nationality: formData.nationality,
             nationalId: formData.nationalId,
             dateOfBirth: formData.dateOfBirth,
@@ -226,12 +227,11 @@ const AgentRegistrationForm = ({ formLabel }) => {
                             className="w-full border-gray-300 rounded-md shadow-sm focus:ring-lime-500 focus:border-lime-500 p-2 pl-1"
                         >
                             <option value="">--</option>
-                            <option value="Male">Individuals</option>
-                            <option value="Female">Salons</option>
-                            <option value="Male">Shops</option>
-                            <option value="Female">Market venders</option>
-                            <option value="Female">Momo agents</option>
-                            <option value="Female">Street hauckers</option>
+                            <option value="Individuals">Individuals</option>
+                            <option value="Salons">Salons</option>
+                            <option value="Shops">Shops</option>
+                            <option value="Market venders">Market venders</option>
+                            <option value="Momo agents">Momo agents</option>
                         </select>
                     </div>
                     <div>
