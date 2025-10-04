@@ -61,8 +61,13 @@ export const UserLocationProvider = ({ children, user }) => {
 
   const isDateTodayOrEarlier = (dateString) => {
     const inputDate = new Date(dateString);
+    console.log(">>inputDate =", inputDate)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    console.log(">>today =", today)
+    console.log(">>!isNaN(inputDate) =", !isNaN(inputDate))
+    console.log(">>inputDate <= today =", inputDate <= today)
+    console.log(">>inputDate instanceof Date =", inputDate instanceof Date)
     return inputDate instanceof Date && !isNaN(inputDate) && inputDate <= today;
   };
   const openScheduledPrompt = (verificationSchedule) => {
@@ -83,7 +88,7 @@ export const UserLocationProvider = ({ children, user }) => {
   console.log("ooooooo-verficationSchedulesCount =", verficationSchedulesCount)
   console.log("ooooooo-user?.agentGuid?.verificationSchedules =", user?.agentGuid?.verificationSchedules)
   console.log("ooooooo-verficationSchedulesCount =", verficationSchedulesCount)
-  console.log("ooooooo-isDateTodayOrEarlier(2025-10-04) =", isDateTodayOrEarlier("2025-10-04"))
+  // console.log("ooooooo-isDateTodayOrEarlier(2025-10-04) =", isDateTodayOrEarlier("2025-10-04"))
   useEffect(() => {
     if(verficationSchedulesCount && (previousVerficationSchedulesCount !== verficationSchedulesCount)){
       if ((user?.agentGuid?._id || user?.agentGuid?.guid) && (previousAgentGuid !== (user?.agentGuid?._id || user?.agentGuid?.guid))) {
