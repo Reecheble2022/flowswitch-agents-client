@@ -1,4 +1,4 @@
-categoryimport React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FloatingLabelInput } from "./floatingLabelInput"
 import { useFileUploaderMutation, useItemRegistrerMutation, useItemsListReaderQuery } from "../backend/api/sharedCrud"
 import { useSelector } from 'react-redux';
