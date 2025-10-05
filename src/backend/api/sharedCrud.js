@@ -132,6 +132,8 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
       },
       transformResponse: (response, _, { entity }) => {
         const { data, msg } = response || {}
+        console.log("<<res>>>-msg =", msg)
+        console.log("<<res>>>-data =", data)
         return { entity, Data: data, Message: msg }
       }
     }),

@@ -26,7 +26,8 @@ const AgentRegistrationForm = ({ formLabel }) => {
         nationality: '',
         nationalId: '',
         dateOfBirth: '',
-        primaryPurpose: ''
+        primaryPurpose: '',
+        password: ''
     });
 
     const {
@@ -98,7 +99,6 @@ const AgentRegistrationForm = ({ formLabel }) => {
         if (agentRegSucceeded) {
             setStatus("✅ Agent registered successfully!");
             setLoading(false);
-            // Reset form fields after successful submission
             setFormData({
                 firstName: '',
                 lastName: '',
@@ -108,7 +108,8 @@ const AgentRegistrationForm = ({ formLabel }) => {
                 nationality: '',
                 nationalId: '',
                 dateOfBirth: '',
-                primaryPurpose: ''
+                primaryPurpose: '',
+                password: ''
             });
             setCategory('');
             setMerchantsAppliedFor([]);
@@ -167,14 +168,12 @@ const AgentRegistrationForm = ({ formLabel }) => {
         e.preventDefault();
         setStatus('');
         setLoading(true);
-
         // Validate required fields
         if (!formData.firstName || !formData.lastName || !category) {
             setStatus('Please fill out all required fields.');
             setLoading(false);
             return;
         }
-
         const payload = {
             merchants: merchantsAppliedFor,
             firstName: formData.firstName,
@@ -188,10 +187,11 @@ const AgentRegistrationForm = ({ formLabel }) => {
             nationalId: formData.nationalId,
             dateOfBirth: formData.dateOfBirth,
             primaryPurpose: formData.primaryPurpose,
+            password: formData.password,
             photo: photoUploadGuid,
             documents: uploadedDocuments,
         }
-        submitNewAgent({ endpoint: "agent", submissionEndpoint: "agent/signup", data: payload })
+        submitNewAgent({ entity: "agent", submissionEndpoint: "agent/signup", data: payload })
     }
     //============= /end submit to Cloud Run =================
 
@@ -289,7 +289,17 @@ const AgentRegistrationForm = ({ formLabel }) => {
                         />
                     </div>
 
-                    <hr />
+                    <div className="mb-6">
+                        <FloatingLabelInput
+                            label="Password"
+                            name="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                        />
+                    </div>
+
+                    <br/>
 
                     {/* Preview Image */}
                     {preview && (
