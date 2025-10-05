@@ -122,8 +122,6 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
     itemRegistrer: builder.mutation({
       query: ({ entity, submissionEndpoint, data }) => {
         const url = `/${submissionEndpoint || entity}`
-        console.log("<<>>>-targetURL =", url)
-        console.log("<<->>>-data =", data)
         return ({
           url,
           method: "POST",
@@ -132,8 +130,6 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
       },
       transformResponse: (response, _, { entity }) => {
         const { data, msg } = response || {}
-        console.log("<<res>>>-msg =", msg)
-        console.log("<<res>>>-data =", data)
         return { entity, Data: data, Message: msg }
       }
     }),
@@ -207,9 +203,6 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
           created_at: item.created_at || sub(new Date(), { minutes: 1 }).toISOString(),
           reactions: item.reactions || { views: 0, likes: 0 }
         }));
-
-        console.log("<<>>>-processedListData =", processedListData)
-
         return {
           entity: isOpportunityRecommendationRequest ? "opportunityrecommendation" : entity,
           Data: processedListData,
