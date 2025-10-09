@@ -409,7 +409,7 @@ const AgentDashboard = ({ className }) => {
                 )}
 
                 <div>
-                  <label> Select Currency </label>
+                  <label> Currency </label>
                   <select 
                     value={selectedCurrency}
                     onChange={(e) => {
@@ -422,8 +422,7 @@ const AgentDashboard = ({ className }) => {
                     className="w-full px-3 py-2 border rounded text-sm sm:text-base"
                     required
                   >
-                    <option value="">---</option>
-                    {voucherOptions.map(v => <option key={v.currency} value={v.currency}>{v.currency}</option>)}
+                    <option value="ZAR">ZAR</option>
                   </select>
                 </div>
 
@@ -508,17 +507,9 @@ const AgentDashboard = ({ className }) => {
                     className="w-full px-3 py-2 border rounded text-sm sm:text-base"
                     required
                   >
-                    <option value="">---</option>
-                    {["ZAR","USD","UGX","EUR"].map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="">ZAR</option>
                   </select>
                 </div>
-                <input
-                  type="text"
-                  value={bookingId}
-                  onChange={(e) => setBookingId(e.target.value)}
-                  placeholder="Booking ID"
-                  className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                />
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
                   <button type="submit" disabled={voucherRedemptionProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
                     Redeem Voucher
