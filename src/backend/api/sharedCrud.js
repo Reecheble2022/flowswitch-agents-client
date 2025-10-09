@@ -215,7 +215,15 @@ export const sharedCrudApi = appiiSlice.injectEndpoints({
 
     //______________________________________________
     itemDetailsViewer: builder.query({
-      query: ({ entity, guid }) => `/${entity}/${guid}`,
+      query: ({ entity, guid, filters }) => {
+        let targetURL = `/${entity}/${guid}`
+        if (filters && Object.keys(filters).length > 0) {
+          const searchParams = new URLSearchParams(filters);
+          const params = searchParams.toString();
+          targetURL = `/${entity}/${guid}?${params}`
+        }
+        return targetURL;
+      },
       transformResponse: ({ msg, data }, _, { entity }) => {
         const { applications, profiles, opportunities, messages } = data || {}
         return {

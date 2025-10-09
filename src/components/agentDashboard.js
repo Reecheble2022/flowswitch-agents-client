@@ -1,68 +1,160 @@
 import React, { useState, useEffect } from 'react';
-import { useItemsListReadrMutation, useItemFieldsUpdaterMutation } from '../backend/api/sharedCrud';
+import {
+  useItemsListReadrMutation, 
+  useItemFieldsUpdaterMutation, 
+  useItemsListReaderQuery, 
+  useItemRegistrerMutation,
+  useItemDetailsViewerQuery
+} from '../backend/api/sharedCrud';
 import { useNoteSnap } from '../noteSnapProvider';
-import { useUserLocation } from "../userLocationProvider";
-import { useAgentRegistration } from "../agentRegistrationProvider";
-import { useAgentVerificationScheduling } from "../agentVerificationScheduleProvider";
-import { FaWallet, FaPlus, FaShoppingCart, FaExchangeAlt, FaMoneyCheckAlt } from 'react-icons/fa';
+import { FaWallet, FaPlus, FaShoppingCart, FaExchangeAlt, FaMoneyCheckAlt, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 
 const AgentDashboard = ({ className }) => {
   const { startNoteVerification } = useNoteSnap();
-  const { triggerHomeVerificationPrompt } = useUserLocation();
-  const { triggerAgentRegistrationPrompt } = useAgentRegistration();
-  const { scheduleAgentVerificationForOneAgent, scheduleAgentVerificationForAllAgents } = useAgentVerificationScheduling();
-  const [activeTab, setActiveTab] = useState('location');
-  const [selectedAgentToPrompt, setSelectedAgentToPrompt] = useState({});
-  const [floatBalance, setFloatBalance] = useState(0);
+  const [selectedCurrencyObject, setSelectedCurrencyObject] = useState({});
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showBuyVoucherModal, setShowBuyVoucherModal] = useState(false);
   const [showRedeemVoucherModal, setShowRedeemVoucherModal] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState('');
-  const [voucherValue, setVoucherValue] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState('');
+  const [selectedAmount, setSelectedAmount] = useState('');
   const [voucherId, setVoucherId] = useState('');
-  const [redeemAmount, setRedeemAmount] = useState('');
+  const [redemptionFiatCurrency, setRedemptionFiatCurrency] = useState('');
+  const [bookingId, setBookingId] = useState('');
+  const [redeemedAmount, setRedeemedAmount] = useState('');
   const [salesAgentId, setSalesAgentId] = useState('');
 
-  const [submitWalletTopUp, { data: updatedWalletData, isLoading: walletTopUpProcessing }] = useItemFieldsUpdaterMutation();
+  const [submitWalletTopUp, walletTopUpResult] = useItemFieldsUpdaterMutation();
+  const { data: updatedWalletData, isLoading: walletTopUpProcessing, isSuccess: walletTopUpSuccess, isError: walletTopUpError, reset: resetWalletTopUp } = walletTopUpResult;
   const { Data: newWalletDetails } = updatedWalletData || {};
+  const [submitNewVoucherRequest, newVoucherResult] = useItemRegistrerMutation();
+  const { data: newVoucherData, isLoading: newVoucherProcessing, isSuccess: newVoucherSuccess, isError: newVoucherError, reset: resetNewVoucher } = newVoucherResult;
+  const { Data: newVoucherDetails } = newVoucherData || {};
+  const [submitVoucherRedemptionRequest, voucherRedemptionResult] = useItemRegistrerMutation();
+  const { isLoading: voucherRedemptionProcessing, isSuccess: voucherRedemptionSuccess, isError: voucherRedemptionError, reset: resetVoucherRedemption } = voucherRedemptionResult;
+  const { data: floatWalletFetchedResponse, refetch: refetchWalletBalance } = useItemDetailsViewerQuery({
+    entity: "floatwallet", 
+    guid: "pivot",
+    filters: { balancePreview:true }
+  });
+  const { Data: floatWalletForCurrentAgent } = floatWalletFetchedResponse || {};
 
+  const [activeTab, setActiveTab] = useState('visa');
+
+  useEffect(()=>{
+    if((walletTopUpSuccess && !walletTopUpProcessing) || (voucherRedemptionSuccess && !voucherRedemptionProcessing)){
+      refetchWalletBalance()
+    }
+  },[walletTopUpSuccess, walletTopUpProcessing, voucherRedemptionSuccess, voucherRedemptionProcessing])
+  
   const handleTopUp = (e) => {
     e.preventDefault();
-    setShowTopUpModal(false);
-    setFloatBalance(prev => prev + parseFloat(e.target.amount.value));
+    const paymentMethod = activeTab;
+    let details = {};
+    if (paymentMethod === 'visa') {
+      details = {
+        cardNumber: e.target.cardNumber.value,
+        expiry: e.target.expiry.value,
+        cvv: e.target.cvv.value,
+        cardHolder: e.target.cardHolder.value,
+      };
+    } else if (paymentMethod === 'crypto') {
+      details = {
+        walletAddress: e.target.walletAddress.value,
+        network: e.target.network.value,
+        secret: e.target.secret.value,
+      };
+    }
     submitWalletTopUp({
       entity: "floatwallet",
       guid: "pivot",
       data: {
         fiatCurrency: "ZAR", 
-        fiatAmount: parseFloat(e.target.amount.value)
+        fiatAmount: parseFloat(e.target.amount.value),
+        paymentMethod,
+        ...details
       },
-    })
+    });
   };
+
+  const closeTopUpModal = () => {
+    setShowTopUpModal(false);
+    setActiveTab('visa');
+    resetWalletTopUp();
+  };
+
+  useEffect(() => {
+    if (!walletTopUpProcessing && walletTopUpSuccess) {
+      const timer = setTimeout(closeTopUpModal, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [walletTopUpProcessing, walletTopUpSuccess]);
 
   const handleBuyVoucher = (e) => {
     e.preventDefault();
-    if (parseFloat(voucherValue) > getTrustLimit(selectedMerchant)) {
+    if (parseFloat(selectedAmount) > getTrustLimit(selectedMerchant)) {
       alert('Voucher value exceeds trust limit for this merchant.');
       return;
     }
-    // TODO: Integrate backend for buying voucher
-    console.log('Buy voucher submitted', { selectedMerchant, voucherValue });
-    setShowBuyVoucherModal(false);
+    submitNewVoucherRequest({
+      entity: "voucher", 
+      data: {
+        merchantGuid: selectedMerchant,
+        voucherFiatValue: selectedAmount,
+        fiatCurrency: selectedCurrency
+        // voucherCryptoValue,
+      }
+    })
   };
+
+  const closeBuyVoucherModal = () => {
+    setShowBuyVoucherModal(false);
+    setSelectedMerchant('');
+    setSelectedCurrency('');
+    setSelectedAmount('');
+    setSelectedCurrencyObject({});
+    resetNewVoucher();
+  };
+
+  useEffect(() => {
+    if (!newVoucherProcessing && newVoucherSuccess) {
+      const timer = setTimeout(closeBuyVoucherModal, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [newVoucherProcessing, newVoucherSuccess]);
 
   const handleRedeemVoucher = (e) => {
     e.preventDefault();
-    if (parseFloat(redeemAmount) > floatBalance) {
+    if (parseFloat(redeemedAmount) > floatWalletForCurrentAgent?.floatFiatBalance) {
       alert('Insufficient float balance to redeem this amount.');
       return;
     }
-    // TODO: Integrate backend for redeeming voucher
-    console.log('Redeem voucher submitted', { voucherId, redeemAmount });
-    setShowRedeemVoucherModal(false);
-    // Mock update balance
-    setFloatBalance(prev => prev - parseFloat(redeemAmount));
+    submitVoucherRedemptionRequest({
+      entity: "voucherredemption", 
+      data: {
+        voucherId,
+        bookingId,
+        fiatAmount: redeemedAmount, 
+        fiatCurrency: redemptionFiatCurrency,
+      }
+    })
   };
+
+  const closeRedeemVoucherModal = () => {
+    setShowRedeemVoucherModal(false);
+    setVoucherId('');
+    setRedeemedAmount('');
+    setRedemptionFiatCurrency('');
+    setBookingId('');
+    resetVoucherRedemption();
+  };
+
+  useEffect(() => {
+    if (!voucherRedemptionProcessing && voucherRedemptionSuccess) {
+      const timer = setTimeout(closeRedeemVoucherModal, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [voucherRedemptionProcessing, voucherRedemptionSuccess]);
 
   const handleVerifyCash = () => {
     if (!salesAgentId) {
@@ -73,20 +165,23 @@ const AgentDashboard = ({ className }) => {
     startNoteVerification({ agentId: salesAgentId });
   };
 
-  // Mock merchants and voucher options for UI demonstration
-  const merchants = ['Merchant A', 'Merchant B', 'Merchant C'];
-  const voucherOptions = [2000, 10000, 20000, 100000]; // Predefined values
+  const voucherOptions = [
+    {currency: "ZAR", symbol: "R", values: [2000, 10000, 20000, 100000]}, 
+    {currency: "USD", symbol: "$", values: [5, 10, 20, 50, 100, 500, 1000]},
+    {currency: "UGX", symbol: "X", values: [20000, 40000, 50000, 100000, 500000, 1000000, 5000000, 10000000]},
+  ];
 
-  // Mock trust limit
   const getTrustLimit = (merchant) => {
-    // In real, fetch based on merchant and user trust score
-    return merchant ? 40000 : 0; // Example max
+    //TODO: In real, fetch based on merchant and user trust score
+    return merchant ? 40000000 : 0;
   };
   
   const [fetchAgents, { data: agentsData, isLoading: agentsLoading }] = useItemsListReadrMutation();
   const { Data: agentList } = agentsData || {};
   const [fetchCashNotes, { data: cashNotesResponse, isLoading: cashNotesLoading }] = useItemsListReadrMutation();
   const { Data: cashNotesVerificationsList, totalPages, currentPage } = cashNotesResponse || {};
+  const { data:merchantsResponse, isLoading: merchantsLoading } = useItemsListReaderQuery({entity: "merchant"});
+  const { Data: merchantsList } = merchantsResponse || {};
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -119,7 +214,7 @@ const AgentDashboard = ({ className }) => {
             <FaWallet className="text-lime-600 text-2xl sm:text-3xl mr-3 sm:mr-4" />
             <div>
               <p className="text-gray-600 text-sm sm:text-base">Float Balance</p>
-              <p className="text-lg sm:text-2xl font-semibold text-lime-600">R{floatBalance.toFixed(2)}</p>
+              <p className="text-lg sm:text-2xl font-semibold text-lime-600">R{(floatWalletForCurrentAgent?.floatFiatBalance || 0).toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -129,7 +224,10 @@ const AgentDashboard = ({ className }) => {
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <FaPlus className="text-lime-600 text-3xl sm:text-4xl mb-4" />
             <h2 className="text-lg sm:text-xl font-semibold mb-2">Top-Up Float</h2>
-            <p className="text-gray-600 text-sm sm:text-base mb-4">Add funds to your float wallet using Visa or Crypto.</p>
+            <p className="text-gray-600 text-sm sm:text-base mb-4">
+              Add funds to your float wallet.
+              You can use it to redeem vouchers and earn commission
+            </p>
             <button 
               onClick={() => setShowTopUpModal(true)}
               className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base"
@@ -141,13 +239,13 @@ const AgentDashboard = ({ className }) => {
           {/* Buy Voucher Card */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <FaShoppingCart className="text-lime-600 text-3xl sm:text-4xl mb-4" />
-            <h2 className="text-lg sm:text-xl font-semibold mb-2">Buy Sales Voucher</h2>
-            <p className="text-gray-600 text-sm sm:text-base mb-4">Purchase a voucher to sell on behalf of a merchant.</p>
+            <h2 className="text-lg sm:text-xl font-semibold mb-2">Get a Sales Voucher</h2>
+            <p className="text-gray-600 text-sm sm:text-base mb-4">Acquire a free voucher to sell goods and/or services on behalf of a merchant.</p>
             <button 
               onClick={() => setShowBuyVoucherModal(true)}
               className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base"
             >
-              Buy Voucher
+              Create Voucher
             </button>
           </div>
 
@@ -171,10 +269,85 @@ const AgentDashboard = ({ className }) => {
             <div className="bg-white p-4 sm:p-8 rounded-lg max-w-full sm:max-w-md w-full mx-4">
               <h2 className="text-lg sm:text-xl font-semibold mb-4">Top-Up Float Wallet</h2>
               <form onSubmit={handleTopUp} className="space-y-4">
-                <select className="w-full px-3 py-2 border rounded text-sm sm:text-base">
-                  <option>Visa Card</option>
-                  <option>Crypto Transfer</option>
-                </select>
+                <div className="flex border-b">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('visa')}
+                    className={`flex-1 py-2 px-4 text-center ${activeTab === 'visa' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
+                  >
+                    Visa Card
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('crypto')}
+                    className={`flex-1 py-2 px-4 text-center ${activeTab === 'crypto' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
+                  >
+                    Crypto
+                  </button>
+                </div>
+                {activeTab === 'visa' && (
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      name="cardHolder"
+                      placeholder="Cardholder Name"
+                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="cardNumber"
+                      placeholder="Card Number"
+                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                      required
+                    />
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        name="expiry"
+                        placeholder="MM/YY"
+                        className="flex-1 px-3 py-2 border rounded text-sm sm:text-base w-[65%]"
+                        required
+                      />
+                      <input
+                        type="password"
+                        name="cvv"
+                        placeholder="CVV"
+                        className="flex-1 px-3 py-2 border rounded text-sm sm:text-base w-[30%]"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'crypto' && (
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      name="walletAddress"
+                      placeholder="Crypto Wallet Address"
+                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                      required
+                    />
+                    <select
+                      name="network"
+                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                      required
+                    >
+                      <option value="">Select Network</option>
+                      <option value="Tron">Tron</option>
+                      <option value="Ethereum">Ethereum</option>
+                      <option value="Binance Smart Chain">Binance Smart Chain</option>
+                      <option value="Solana">Solana</option>
+                    </select>
+                    <input
+                      type="password"
+                      name="secret"
+                      placeholder="Wallet Secret/Password"
+                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                      required
+                    />
+                  </div>
+                )}
                 <input
                   type="number"
                   name="amount"
@@ -183,17 +356,31 @@ const AgentDashboard = ({ className }) => {
                   required
                 />
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
-                  <button type="submit" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
+                  <button type="submit" disabled={walletTopUpProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
                     Submit Top-Up
                   </button>
                   <button 
                     type="button" 
-                    onClick={() => setShowTopUpModal(false)}
+                    onClick={closeTopUpModal}
                     className="mt-2 sm:mt-0 text-gray-600 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                 </div>
+                {walletTopUpProcessing && (
+                  <div className="text-center flex items-center justify-center">
+                    <FaSpinner className="animate-spin text-lime-600 mr-2" /> Processing...
+                  </div>
+                )}
+                {!walletTopUpProcessing && (walletTopUpSuccess || walletTopUpError) && (
+                  <div className={`flex items-center justify-between ${walletTopUpSuccess ? 'text-green-600' : 'text-red-600'}`}>
+                    <span>
+                      {walletTopUpSuccess ? <FaCheck className="inline mr-1" /> : <FaTimes className="inline mr-1" />}
+                      {walletTopUpSuccess ? 'Top-Up Successful' : 'Top-Up Failed'}
+                    </span>
+                    <span onClick={closeTopUpModal} className="cursor-pointer">x</span>
+                  </div>
+                )}
               </form>
             </div>
           </div>
@@ -203,41 +390,86 @@ const AgentDashboard = ({ className }) => {
         {showBuyVoucherModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-4 sm:p-8 rounded-lg max-w-full sm:max-w-md w-full mx-4">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4">Buy Sales/Payment Voucher</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4">Create Sales/Payment Voucher</h2>
               <form onSubmit={handleBuyVoucher} className="space-y-4">
-                <select 
-                  value={selectedMerchant}
-                  onChange={(e) => setSelectedMerchant(e.target.value)}
-                  className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                  required
-                >
-                  <option value="">Select Merchant</option>
-                  {merchants.map(m => <option key={m}>{m}</option>)}
-                </select>
+                <div>
+                  <label> Select Merchant </label>
+                  <select 
+                    value={selectedMerchant}
+                    onChange={(e) => setSelectedMerchant(e.target.value)}
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                    required
+                  >
+                    <option value="">---</option>
+                    {(merchantsList || []).map(m => <option key={m.guid || m._id} value={m.guid || m._id}>{m.name}</option>)}
+                  </select>
+                </div>
                 {selectedMerchant && (
-                  <p className="text-gray-600 text-sm sm:text-base">Max Trust Limit: R{getTrustLimit(selectedMerchant)}</p>
+                  <p className="text-gray-600 text-sm sm:text-base">Max Trust Limit: {getTrustLimit(selectedMerchant)}</p>
                 )}
-                <select 
-                  value={voucherValue}
-                  onChange={(e) => setVoucherValue(e.target.value)}
-                  className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                  required
-                >
-                  <option value="">Select Voucher Value</option>
-                  {voucherOptions.map(v => <option key={v} value={v}>R{v}</option>)}
-                </select>
+
+                <div>
+                  <label> Select Currency </label>
+                  <select 
+                    value={selectedCurrency}
+                    onChange={(e) => {
+                      const currency = e.target.value;
+                      const currencyObj = voucherOptions.find(v => v.currency === currency) || {};
+                      setSelectedCurrency(currency);
+                      setSelectedAmount(''); // Reset amount when currency changes
+                      setSelectedCurrencyObject(currencyObj);
+                    }}
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                    required
+                  >
+                    <option value="">---</option>
+                    {voucherOptions.map(v => <option key={v.currency} value={v.currency}>{v.currency}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label> Select Amount </label>
+                  <select 
+                    value={selectedAmount}
+                    onChange={(e) => setSelectedAmount(e.target.value)}
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                    required
+                    disabled={!selectedCurrencyObject.values} // Disable if no valid values
+                  >
+                    <option value="">---</option>
+                    {selectedCurrencyObject.values?.map(v => (
+                      <option key={`${selectedCurrencyObject.currency}-${v}`} value={v}>
+                        {selectedCurrencyObject.symbol}{v}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
-                  <button type="submit" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
-                    Buy Voucher
+                  <button type="submit" disabled={newVoucherProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
+                    Create
                   </button>
                   <button 
                     type="button" 
-                    onClick={() => setShowBuyVoucherModal(false)}
+                    onClick={closeBuyVoucherModal}
                     className="mt-2 sm:mt-0 text-gray-600 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                 </div>
+                {newVoucherProcessing && (
+                  <div className="text-center flex items-center justify-center">
+                    <FaSpinner className="animate-spin text-lime-600 mr-2" /> Processing...
+                  </div>
+                )}
+                {!newVoucherProcessing && (newVoucherSuccess || newVoucherError) && (
+                  <div className={`flex items-center justify-between ${newVoucherSuccess ? 'text-green-600' : 'text-red-600'}`}>
+                    <span>
+                      {newVoucherSuccess ? <FaCheck className="inline mr-1" /> : <FaTimes className="inline mr-1" />}
+                      {newVoucherSuccess ? 'Voucher Created Successfully' : 'Voucher Creation Failed'}
+                    </span>
+                    <span onClick={closeBuyVoucherModal} className="cursor-pointer">x</span>
+                  </div>
+                )}
               </form>
             </div>
           </div>
@@ -259,41 +491,60 @@ const AgentDashboard = ({ className }) => {
                 />
                 <input
                   type="number"
-                  value={redeemAmount}
-                  onChange={(e) => setRedeemAmount(e.target.value)}
+                  value={redeemedAmount}
+                  onChange={(e) => setRedeemedAmount(e.target.value)}
                   placeholder="Amount to Redeem"
                   className="w-full px-3 py-2 border rounded text-sm sm:text-base"
                   required
                 />
-                <div className="flex items-center space-x-2">
-                  <FaMoneyCheckAlt className="text-lime-600 text-xl sm:text-2xl" />
-                  <input
-                    type="text"
-                    value={salesAgentId}
-                    onChange={(e) => setSalesAgentId(e.target.value)}
-                    placeholder="Sales Agent ID for Cash Verification"
-                    className="flex-grow px-3 py-2 border rounded text-sm sm:text-base"
-                  />
-                  <button 
-                    type="button" 
-                    onClick={handleVerifyCash}
-                    className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base"
+                <div>
+                  <label> Currency </label>
+                  <select 
+                    value={redemptionFiatCurrency}
+                    onChange={(e) => {
+                      const currency = e.target.value;
+                      setRedemptionFiatCurrency(currency);
+                    }}
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                    required
                   >
-                    Verify Cash
-                  </button>
+                    <option value="">---</option>
+                    {["ZAR","USD","UGX","EUR"].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </div>
+                <input
+                  type="text"
+                  value={bookingId}
+                  onChange={(e) => setBookingId(e.target.value)}
+                  placeholder="Booking ID"
+                  className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                />
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
-                  <button type="submit" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
+                  <button type="submit" disabled={voucherRedemptionProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
                     Redeem Voucher
                   </button>
                   <button 
                     type="button" 
-                    onClick={() => setShowRedeemVoucherModal(false)}
+                    onClick={closeRedeemVoucherModal}
                     className="mt-2 sm:mt-0 text-gray-600 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                 </div>
+                {voucherRedemptionProcessing && (
+                  <div className="text-center flex items-center justify-center">
+                    <FaSpinner className="animate-spin text-lime-600 mr-2" /> Processing...
+                  </div>
+                )}
+                {!voucherRedemptionProcessing && (voucherRedemptionSuccess || voucherRedemptionError) && (
+                  <div className={`flex items-center justify-between ${voucherRedemptionSuccess ? 'text-green-600' : 'text-red-600'}`}>
+                    <span>
+                      {voucherRedemptionSuccess ? <FaCheck className="inline mr-1" /> : <FaTimes className="inline mr-1" />}
+                      {voucherRedemptionSuccess ? 'Voucher Redeemed Successfully' : 'Voucher Redemption Failed'}
+                    </span>
+                    <span onClick={closeRedeemVoucherModal} className="cursor-pointer">x</span>
+                  </div>
+                )}
               </form>
             </div>
           </div>

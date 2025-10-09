@@ -24,6 +24,8 @@ const agentmerchanttrustAdaptor = createEntityAdapter({ selectId: (data) => (dat
 const roleAdaptor = createEntityAdapter({ selectId: (data) => (data.guid || data._id) })
 const permissionAdaptor = createEntityAdapter({ selectId: (data) => (data.guid || data._id) })
 const userAdaptor = createEntityAdapter({ selectId: (data) => (data.guid || data._id) })
+const voucherconsumptionAdaptor = createEntityAdapter({ selectId: (data) => (data.guid || data._id) })
+const voucherredemptionAdaptor = createEntityAdapter({ selectId: (data) => (data.guid || data._id) })
 
 export const mainAdaptors = {
     active_collection: activeCollectionAdapter,
@@ -43,6 +45,8 @@ export const mainAdaptors = {
     role: roleAdaptor,
     permission: permissionAdaptor,
     user: userAdaptor,
+    voucherconsumption: voucherconsumptionAdaptor,
+    voucherredemption: voucherredemptionAdaptor,
     error: errorAdaptor,
 }
 
@@ -64,6 +68,8 @@ export const mainInixoStates = {
     role: roleAdaptor.getInitialState(),
     permission: permissionAdaptor.getInitialState(),
     user: userAdaptor.getInitialState(),
+    voucherconsumption: voucherconsumptionAdaptor.getInitialState(),
+    voucherredemption: voucherredemptionAdaptor.getInitialState(),
     error: null,
 }
 
