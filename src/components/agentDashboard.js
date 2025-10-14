@@ -32,6 +32,7 @@ const AgentDashboard = ({ className }) => {
   const [redeemedAmount, setRedeemedAmount] = useState('');
   const [salesAgentId, setSalesAgentId] = useState('');
   const [topUpAmount, setTopUpAmount] = useState('');
+  
 
   const [submitWalletTopUp, walletTopUpResult] = useItemFieldsUpdaterMutation();
   const { data: updatedWalletData, isLoading: walletTopUpProcessing, isSuccess: walletTopUpSuccess, isError: walletTopUpError, reset: resetWalletTopUp } = walletTopUpResult;
@@ -299,7 +300,6 @@ const AgentDashboard = ({ className }) => {
               {activeTab === 'visa' && (
                 <Elements stripe={stripePromise}>
                   <StripeCardForm
-                    amount={topUpAmount}
                     onCancel={closeTopUpModal}
                     targetWalletDetails={floatWalletForCurrentAgent}
                   />

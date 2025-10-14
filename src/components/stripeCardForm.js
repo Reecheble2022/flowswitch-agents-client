@@ -3,14 +3,12 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 import { useItemRegistrerMutation } from '../backend/api/sharedCrud';
 
-// Props:
-// - amount: The top-up amount (e.g., "10" for R10)
-// - onCancel: Callback to close the modal
-const StripeCardForm = ({ amount, onCancel, targetWalletDetails }) => {
+const StripeCardForm = ({ onCancel, targetWalletDetails }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [cardError, setCardError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fiatAmount, setFiatAmount] = useState(0);
   const [paymentStatus, setPaymentStatus] = useState(null); // null, 'success', 'error'
   const [submitNewPaymentIntentRequest, {
     data: newPaymentIntentData, 
@@ -42,11 +40,16 @@ const StripeCardForm = ({ amount, onCancel, targetWalletDetails }) => {
     setPaymentStatus(null);
     try {
       const cardHolderName = e.target.cardHolder.value
-      submitNewPaymentIntentRequest({
-        entity: "floatwallet",
-        submissionEndpoint: "floatwallet/paymentintent",
-        data: { amount, cardHolderName, targetWalletDetails }
-      })
+      const fiatAmnt = e.target.fiatAmount.value
+      if(fiatAmnt){
+        submitNewPaymentIntentRequest({
+          entity: "floatwallet",
+          submissionEndpoint: "floatwallet/paymentintent",
+          data: { amount: fiatAmnt, cardHolderName, targetWalletDetails }
+        })
+      }else{
+        setCardError('Amount is required and cannot be zero');
+      }
     } catch (err) {
       setCardError('An unexpected error occurred. Please try again.');
       setPaymentStatus('error');
@@ -110,10 +113,10 @@ const StripeCardForm = ({ amount, onCancel, targetWalletDetails }) => {
         <label className="block text-sm font-medium text-gray-700">Amount (ZAR)</label>
         <input
           type="number"
-          name="amount"
+          name="fiatAmount"
           placeholder="Amount"
-          value={amount}
-          disabled
+          value={fiatAmount}
+          onChange={(e) => setFiatAmount(e.target.value)}
           className="w-full px-3 py-2 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-lime-600"
           required
         />
