@@ -5,6 +5,8 @@
   "homepage": "https://agents.flowswitchapi.com/",
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "@stripe/react-stripe-js": "^5.2.0",
+    "@stripe/stripe-js": "^8.0.0",
     "ag-grid-react": "^34.1.0",
     "ajv": "^8.17.1",
     "cra-template": "1.2.0",

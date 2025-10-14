@@ -8,6 +8,14 @@ import {
 } from '../backend/api/sharedCrud';
 import { useNoteSnap } from '../noteSnapProvider';
 import { FaWallet, FaPlus, FaShoppingCart, FaExchangeAlt, FaMoneyCheckAlt, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripeCardForm from './stripeCardForm';
+
+// const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY_TEST
+console.log("==>>-STRIPE_PUBLIC_KEY =", STRIPE_PUBLIC_KEY)
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const AgentDashboard = ({ className }) => {
   const { startNoteVerification } = useNoteSnap();
@@ -23,6 +31,7 @@ const AgentDashboard = ({ className }) => {
   const [bookingId, setBookingId] = useState('');
   const [redeemedAmount, setRedeemedAmount] = useState('');
   const [salesAgentId, setSalesAgentId] = useState('');
+  const [topUpAmount, setTopUpAmount] = useState('');
 
   const [submitWalletTopUp, walletTopUpResult] = useItemFieldsUpdaterMutation();
   const { data: updatedWalletData, isLoading: walletTopUpProcessing, isSuccess: walletTopUpSuccess, isError: walletTopUpError, reset: resetWalletTopUp } = walletTopUpResult;
@@ -35,7 +44,7 @@ const AgentDashboard = ({ className }) => {
   const { data: floatWalletFetchedResponse, refetch: refetchWalletBalance } = useItemDetailsViewerQuery({
     entity: "floatwallet", 
     guid: "pivot",
-    filters: { balancePreview:true }
+    filters: { balancePreview: true }
   });
   const { Data: floatWalletForCurrentAgent } = floatWalletFetchedResponse || {};
 
@@ -80,6 +89,7 @@ const AgentDashboard = ({ className }) => {
   const closeTopUpModal = () => {
     setShowTopUpModal(false);
     setActiveTab('visa');
+    setTopUpAmount('');
     resetWalletTopUp();
   };
 
@@ -263,128 +273,122 @@ const AgentDashboard = ({ className }) => {
           </div>
         </div>
 
+        {/* ======= start ============================================= */}
         {/* Top-Up Modal */}
         {showTopUpModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-4 sm:p-8 rounded-lg max-w-full sm:max-w-md w-full mx-4">
               <h2 className="text-lg sm:text-xl font-semibold mb-4">Top-Up Float Wallet</h2>
-              <form onSubmit={handleTopUp} className="space-y-4">
-                <div className="flex border-b">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('visa')}
-                    className={`flex-1 py-2 px-4 text-center ${activeTab === 'visa' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
+              <div className="flex border-b">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('visa')}
+                  className={`flex-1 py-2 px-4 text-center ${activeTab === 'visa' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
+                >
+                  Visa Card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('crypto')}
+                  className={`flex-1 py-2 px-4 text-center ${activeTab === 'crypto' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
+                >
+                  Crypto
+                </button>
+              </div>
+
+              {activeTab === 'visa' && (
+                <Elements stripe={stripePromise}>
+                  <StripeCardForm
+                    amount={topUpAmount}
+                    onCancel={closeTopUpModal}
+                    targetWalletDetails={floatWalletForCurrentAgent}
+                  />
+                </Elements>
+              )}
+
+              {activeTab === 'crypto' && (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleTopUp({
+                    entity: "floatwallet",
+                    guid: "pivot",
+                    data: {
+                      fiatCurrency: "ZAR",
+                      fiatAmount: parseFloat(e.target.amount.value),
+                      paymentMethod: "crypto",
+                      walletAddress: e.target.walletAddress.value,
+                      network: e.target.network.value,
+                      secret: e.target.secret.value,
+                    },
+                  });
+                }} className="space-y-4">
+                  <input
+                    type="text"
+                    name="walletAddress"
+                    placeholder="Crypto Wallet Address"
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-lime-600"
+                    required
+                  />
+                  <select
+                    name="network"
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base"
+                    required
                   >
-                    Visa Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('crypto')}
-                    className={`flex-1 py-2 px-4 text-center ${activeTab === 'crypto' ? 'border-b-2 border-lime-600 text-lime-600' : 'text-gray-600'}`}
-                  >
-                    Crypto
-                  </button>
-                </div>
-                {activeTab === 'visa' && (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      name="cardHolder"
-                      placeholder="Cardholder Name"
-                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="cardNumber"
-                      placeholder="Card Number"
-                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                      required
-                    />
-                    <div className="flex space-x-2">
-                      <input
-                        type="text"
-                        name="expiry"
-                        placeholder="MM/YY"
-                        className="flex-1 px-3 py-2 border rounded text-sm sm:text-base w-[65%]"
-                        required
-                      />
-                      <input
-                        type="password"
-                        name="cvv"
-                        placeholder="CVV"
-                        className="flex-1 px-3 py-2 border rounded text-sm sm:text-base w-[30%]"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'crypto' && (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      name="walletAddress"
-                      placeholder="Crypto Wallet Address"
-                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                      required
-                    />
-                    <select
-                      name="network"
-                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                      required
+                    <option value="">Select Network</option>
+                    <option value="Tron">Tron</option>
+                    <option value="Ethereum">Ethereum</option>
+                    <option value="Binance Smart Chain">Binance Smart Chain</option>
+                    <option value="Solana">Solana</option>
+                  </select>
+                  <input
+                    type="password"
+                    name="secret"
+                    placeholder="Wallet Secret/Password"
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-lime-600"
+                    required
+                  />
+                  <input
+                    type="number"
+                    name="amount"
+                    placeholder="Amount"
+                    value={topUpAmount}
+                    onChange={(e) => setTopUpAmount(e.target.value)}
+                    className="w-full px-3 py-2 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-lime-600"
+                    required
+                  />
+                  <div className="flex flex-col sm:flex-row sm:space-x-2">
+                    <button type="submit" disabled={walletTopUpProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base disabled:bg-gray-400">
+                      Submit Top-Up
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={closeTopUpModal}
+                      className="mt-2 sm:mt-0 text-gray-600 text-sm sm:text-base"
                     >
-                      <option value="">Select Network</option>
-                      <option value="Tron">Tron</option>
-                      <option value="Ethereum">Ethereum</option>
-                      <option value="Binance Smart Chain">Binance Smart Chain</option>
-                      <option value="Solana">Solana</option>
-                    </select>
-                    <input
-                      type="password"
-                      name="secret"
-                      placeholder="Wallet Secret/Password"
-                      className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                      required
-                    />
+                      Cancel
+                    </button>
                   </div>
-                )}
-                <input
-                  type="number"
-                  name="amount"
-                  placeholder="Amount"
-                  className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                  required
-                />
-                <div className="flex flex-col sm:flex-row sm:space-x-2">
-                  <button type="submit" disabled={walletTopUpProcessing} className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 text-sm sm:text-base">
-                    Submit Top-Up
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={closeTopUpModal}
-                    className="mt-2 sm:mt-0 text-gray-600 text-sm sm:text-base"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                {walletTopUpProcessing && (
-                  <div className="text-center flex items-center justify-center">
-                    <FaSpinner className="animate-spin text-lime-600 mr-2" /> Processing...
-                  </div>
-                )}
-                {!walletTopUpProcessing && (walletTopUpSuccess || walletTopUpError) && (
-                  <div className={`flex items-center justify-between ${walletTopUpSuccess ? 'text-green-600' : 'text-red-600'}`}>
-                    <span>
-                      {walletTopUpSuccess ? <FaCheck className="inline mr-1" /> : <FaTimes className="inline mr-1" />}
-                      {walletTopUpSuccess ? 'Top-Up Successful' : 'Top-Up Failed'}
-                    </span>
-                    <span onClick={closeTopUpModal} className="cursor-pointer">x</span>
-                  </div>
-                )}
-              </form>
+                  {walletTopUpProcessing && (
+                    <div className="text-center flex items-center justify-center">
+                      <FaSpinner className="animate-spin text-lime-600 mr-2" /> Processing...
+                    </div>
+                  )}
+                  {!walletTopUpProcessing && (walletTopUpSuccess || walletTopUpError) && (
+                    <div className={`flex items-center justify-between ${walletTopUpSuccess ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>
+                        {walletTopUpSuccess ? <FaCheck className="inline mr-1" /> : <FaTimes className="inline mr-1" />}
+                        {walletTopUpSuccess ? 'Top-Up Successful' : 'Top-Up Failed'}
+                      </span>
+                      <span onClick={closeTopUpModal} className="cursor-pointer">x</span>
+                    </div>
+                  )}
+                </form>
+              )}
             </div>
           </div>
         )}
+        {/* ======= end ============================================= */}
+
 
         {/* Buy Voucher Modal */}
         {showBuyVoucherModal && (
