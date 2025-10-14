@@ -3,7 +3,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 import { useItemRegistrerMutation } from '../backend/api/sharedCrud';
 
-const StripeCardForm = ({ onCancel, targetWalletDetails }) => {
+const StripeCardForm = ({ onCancel, targetWalletDetails, refetchWalletBalance }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [cardError, setCardError] = useState(null);
@@ -76,6 +76,9 @@ const StripeCardForm = ({ onCancel, targetWalletDetails }) => {
     if (paymentIntent?.status === 'succeeded') {
         setPaymentStatus('success');
         setIsSubmitting(false);
+        if(refetchWalletBalance){
+          refetchWalletBalance()
+        }
         setTimeout(() => onCancel(), 3000);
     }
   }

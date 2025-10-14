@@ -302,6 +302,7 @@ const AgentDashboard = ({ className }) => {
                   <StripeCardForm
                     onCancel={closeTopUpModal}
                     targetWalletDetails={floatWalletForCurrentAgent}
+                    refetchWalletBalance={refetchWalletBalance}
                   />
                 </Elements>
               )}
