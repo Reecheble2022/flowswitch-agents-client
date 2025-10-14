@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { createEntityAdapter } from "@reduxjs/toolkit";
-// import { getWebSocketInstance } from './websocketConnection';
 import { setUsrCredentials } from "../features/sharedMainState2"
 const API_BASE_URL = "https://flowswitch-backend-566729010148.africa-south1.run.app";
 // const API_BASE_URL = "http://localhost:8080";

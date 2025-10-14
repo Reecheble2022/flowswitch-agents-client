@@ -12,8 +12,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripeCardForm from './stripeCardForm';
 
-// const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY_TEST
+// const STRIPE_PUBLIC_KEY = "pk_test_51SHitEPIjJFMy63fVoKEAI6ja3CA1wlARICPVfG8RNlH6KFMdXh7W36GumW0UIkPNFYUXwb7Von8GitlxV1ocQHl00UmM1OcVc"
+const STRIPE_PUBLIC_KEY = "pk_test_51SHitEPIjJFMy63fVoKEAI6ja3CA1wlARICPVfG8RNlH6KFMdXh7W36GumW0UIkPNFYUXwb7Von8GitlxV1ocQHl00UmM1OcVc"
 console.log("==>>-STRIPE_PUBLIC_KEY =", STRIPE_PUBLIC_KEY)
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 

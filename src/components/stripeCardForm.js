@@ -31,15 +31,7 @@ const StripeCardForm = ({ amount, onCancel, targetWalletDetails }) => {
     }
   },[newPaymentIntentSuccess, newPaymentIntentProcessing])
 
-  useEffect(()=>{
-    if (stripeError) {
-        setCardError(stripeError.message);
-        setPaymentStatus('error');
-        setIsSubmitting(false);
-    }
-  },[stripePaymentConfimError])
-
-  const handleSubmit = async (e) => {
+  const handleSubmitStripePaymentIntent = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) {
       setCardError('Stripe.js has not loaded. Please try again.');
@@ -84,7 +76,7 @@ const StripeCardForm = ({ amount, onCancel, targetWalletDetails }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmitStripePaymentIntent} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">Cardholder Name</label>
         <input
