@@ -21,7 +21,6 @@ const StripeCardForm = ({ onCancel, targetWalletDetails }) => {
   useEffect(() => {
     if(newPaymentIntentSuccess && newPaymentIntentDetails && !newPaymentIntentProcessing){
         const { clientSecret, cardHolderName } = newPaymentIntentDetails;
-        console.log("=useEffect========>>>clientSecret, cardHolderName =", clientSecret, cardHolderName)
         confirmStripePayment({ clientSecret, cardHolderName })
     }
     if (newPaymentIntentIsErr) {
@@ -76,6 +75,7 @@ const StripeCardForm = ({ onCancel, targetWalletDetails }) => {
     }
     if (paymentIntent?.status === 'succeeded') {
         setPaymentStatus('success');
+        setIsSubmitting(false);
         setTimeout(() => onCancel(), 3000);
     }
   }
