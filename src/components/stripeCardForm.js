@@ -67,7 +67,6 @@ const StripeCardForm = ({ onCancel, targetWalletDetails, refetchWalletBalance })
             },
         },
     });
-    console.log("========>>>paymentIntent, confirmationError =", paymentIntent, confirmationError)
     if (confirmationError) {
         setCardError(confirmationError.message);
         setPaymentStatus('error');
