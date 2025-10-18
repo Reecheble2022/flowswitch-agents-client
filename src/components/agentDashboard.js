@@ -32,7 +32,6 @@ const AgentDashboard = ({ className }) => {
   const [redeemedAmount, setRedeemedAmount] = useState('');
   const [salesAgentId, setSalesAgentId] = useState('');
   const [topUpAmount, setTopUpAmount] = useState('');
-  
 
   const [submitWalletTopUp, walletTopUpResult] = useItemFieldsUpdaterMutation();
   const { data: updatedWalletData, isLoading: walletTopUpProcessing, isSuccess: walletTopUpSuccess, isError: walletTopUpError, reset: resetWalletTopUp } = walletTopUpResult;
@@ -510,9 +509,8 @@ const AgentDashboard = ({ className }) => {
                       setRedemptionFiatCurrency(currency);
                     }}
                     className="w-full px-3 py-2 border rounded text-sm sm:text-base"
-                    required
                   >
-                    <option value="">ZAR</option>
+                    <option value="ZAR">ZAR</option>
                   </select>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:space-x-2">
