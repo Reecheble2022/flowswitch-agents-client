@@ -49,6 +49,12 @@ const AgentDashboard = ({ className }) => {
   const { Data: floatWalletForCurrentAgent } = floatWalletFetchedResponse || {};
 
   const [activeTab, setActiveTab] = useState('visa');
+  const [rendering, setRendering] = useState(false);
+
+  const handleBalanceRefetch = () => {
+    refetchWalletBalance()
+    setRendering(!rendering)
+  }
 
   useEffect(()=>{
     if((walletTopUpSuccess && !walletTopUpProcessing) || (voucherRedemptionSuccess && !voucherRedemptionProcessing)){
@@ -301,7 +307,7 @@ const AgentDashboard = ({ className }) => {
                   <StripeCardForm
                     onCancel={closeTopUpModal}
                     targetWalletDetails={floatWalletForCurrentAgent}
-                    refetchWalletBalance={refetchWalletBalance}
+                    refetchWalletBalance={handleBalanceRefetch}
                   />
                 </Elements>
               )}
